@@ -87,30 +87,48 @@ def deploy_script(ip, script_name, code_path):
     rpc_call(ip, "Script.Start", {"id": script_id})
     print(f"  [SUCCESS] {script_name} deployed and started!")
 
+def load_env(filepath):
+    if not os.path.exists(filepath): return
+    with open(filepath, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#'): continue
+            if '=' in line:
+                k, v = line.split('=', 1)
+                os.environ[k.strip()] = v.strip().strip('"').strip("'")
+
 def main():
-    inventory_path = os.path.join(os.path.dirname(__file__), "inventory.json")
-    scripts_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "scripts")
+    deploy_dir = os.path.dirname(__file__)
+    inventory_path = os.path.join(deploy_dir, "inventory.json")
+    env_path = os.path.join(deploy_dir, ".env")
+    scripts_dir = os.path.join(os.path.dirname(deploy_dir), "scripts")
+    
+    # Load secrets
+    load_env(env_path)
     
     with open(inventory_path, "r") as f:
         inv = json.load(f)
         
-    config = inv.get("config", {})
-    
     print("=== Shelly Fleet Deployment Pipeline ===")
     for device in inv.get("devices", []):
         ip = device["ip"]
         name = device["name"]
         print(f"\n--- Processing Device: {name} ({ip}) ---")
         
-        # 1. Inject configurations into KVS
-        if config.get("supabase_url"):
-            set_kvs(ip, "supabase_url", config["supabase_url"])
-        if config.get("supabase_key"):
-            set_kvs(ip, "supabase_key", config["supabase_key"])
-        if config.get("telegram_bot_token"):
-            set_kvs(ip, "telegram_bot_token", config["telegram_bot_token"])
-        if config.get("telegram_chat_id"):
-            set_kvs(ip, "telegram_chat_id", config["telegram_chat_id"])
+        # 1. Inject configurations into KVS securely from environment
+        supabase_url = os.environ.get("SUPABASE_URL")
+        supabase_key = os.environ.get("SUPABASE_KEY")
+        telegram_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+        telegram_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+        
+        if supabase_url:
+            set_kvs(ip, "supabase_url", supabase_url)
+        if supabase_key:
+            set_kvs(ip, "supabase_key", supabase_key)
+        if telegram_token:
+            set_kvs(ip, "telegram_bot_token", telegram_token)
+        if telegram_chat_id:
+            set_kvs(ip, "telegram_chat_id", telegram_chat_id)
             
         # 2. Deploy selected scripts
         for script_name in device.get("scripts", []):
