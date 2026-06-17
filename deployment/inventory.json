@@ -6,10 +6,10 @@
     "telegram_chat_id": "YOUR_TELEGRAM_CHAT_ID"
   },
   "devices": [
-    {
-      "ip": "192.168.1.100",
-      "name": "Hlavni Rozvadec 3EM",
-      "scripts": ["metering", "monitor", "system_health"]
-    }
+    { "ip": "192.168.1.250", "name": "Druhe patro", "scripts": ["metering", "monitor", "system_health"] },
+    { "ip": "192.168.1.180", "name": "Zahrada", "scripts": ["metering", "monitor", "system_health"] },
+    { "ip": "192.168.1.162", "name": "Prvni patro", "scripts": ["metering", "monitor", "system_health"] },
+    { "ip": "192.168.1.123", "name": "Podkrovi", "scripts": ["metering", "monitor", "system_health"] },
+    { "ip": "192.168.1.182", "name": "Pripojka", "scripts": ["metering", "monitor", "system_health"] }
   ]
 }
